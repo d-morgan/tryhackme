@@ -10,7 +10,11 @@
     "start:api": "npm run -w api dev",
     "start:client": "npm run -w client start",
     "dev": "npm start",
-    "test": "npm run -w client test",
+    "test": "concurrently npm:test:*",
+    "test:api": "npm run -w api test",
+    "test:client": "npm run -w client test",
+    "test:coverage:api": "npm run -w api test:coverage",
+    "test:coverage:client": "npm run -w client test:coverage",
     "api-no-watch": "npm run -w api dev:no-watch"
   },
   "devDependencies": {

@@ -3,7 +3,8 @@
   "type": "module",
   "version": "1.0.0",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage",
     "dev": "tsx watch --clear-screen=false .",
     "dev:api": "npm run dev",
     "dev:no-watch": "tsx .",
@@ -22,8 +23,12 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/supertest": "^6.0.2",
+    "@vitest/coverage-v8": "^3.0.2",
     "mongodb-memory-server": "^9.4.0",
+    "supertest": "^7.0.0",
     "tsx": "^4.16.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^3.0.2"
   }
 }

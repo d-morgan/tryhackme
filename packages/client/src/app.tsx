@@ -1,37 +1,55 @@
 import { useState, type ChangeEvent } from 'react';
-import { getCodeSandboxHost } from "@codesandbox/utils";
+import { getCodeSandboxHost } from '@codesandbox/utils';
+import SearchDropdown from './components/SearchDropdown';
+import type { SearchResults } from './helpers/types';
 
-type Hotel = { _id: string, chain_name: string; hotel_name: string; city: string, country: string };
-
-const codeSandboxHost = getCodeSandboxHost(3001)
-const API_URL = codeSandboxHost ? `https://${codeSandboxHost}` : 'http://localhost:3001'
-
-const fetchAndFilterHotels = async (value: string) => {
-  const hotelsData = await fetch(`${API_URL}/hotels`);
-  const hotels = (await hotelsData.json()) as Hotel[];
-  return hotels.filter(
-    ({ chain_name, hotel_name, city, country }) =>
-      chain_name.toLowerCase().includes(value.toLowerCase()) ||
-      hotel_name.toLowerCase().includes(value.toLowerCase()) ||
-      city.toLowerCase().includes(value.toLowerCase()) ||
-      country.toLowerCase().includes(value.toLowerCase())
-  );
-}
+const codeSandboxHost = getCodeSandboxHost(3001);
+const API_URL = codeSandboxHost
+  ? `https://${codeSandboxHost}`
+  : 'http://localhost:3001';
 
 function App() {
-  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [results, setResults] = useState<SearchResults>({
+    hotels: [],
+    countries: [],
+    cities: [],
+  });
+
   const [showClearBtn, setShowClearBtn] = useState(false);
 
-  const fetchData = async (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.value === '') {
-      setHotels([]);
-      setShowClearBtn(false);
-      return;
+  const fetchData = async (value: string) => {
+    try {
+      const response = await fetch(`${API_URL}/search?q=${value}`);
+      const data = await response.json();
+      setResults({
+        hotels: data.hotels || [],
+        countries: data.countries || [],
+        cities: data.cities || [],
+      });
+    } catch (error) {
+      console.error('Error fetching search data:', error);
+      setResults({ hotels: [], countries: [], cities: [] });
     }
+  };
 
-    const filteredHotels = await fetchAndFilterHotels(event.target.value)
-    setShowClearBtn(true);
-    setHotels(filteredHotels);
+  const onChangeInput = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setSearchTerm(value);
+
+    if (value === '') {
+      setShowClearBtn(false);
+      setResults({ hotels: [], countries: [], cities: [] });
+    } else {
+      setShowClearBtn(true);
+      fetchData(value);
+    }
+  };
+
+  const onClearInput = () => {
+    setSearchTerm('');
+    setResults({ hotels: [], countries: [], cities: [] });
+    setShowClearBtn(false);
   };
 
   return (
@@ -46,32 +64,22 @@ function App() {
                   type="text"
                   className="form-control form-input"
                   placeholder="Search accommodation..."
-                  onChange={fetchData}
+                  value={searchTerm}
+                  onChange={onChangeInput}
                 />
                 {showClearBtn && (
-                  <span className="left-pan">
-                    <i className="fa fa-close"></i>
+                  <span
+                    data-testid="clear-btn"
+                    className="left-pan"
+                    onClick={onClearInput}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <i className="fa fa-close" />
                   </span>
                 )}
               </div>
-              {!!hotels.length && (
-                <div className="search-dropdown-menu dropdown-menu w-100 show p-2">
-                  <h2>Hotels</h2>
-                  {hotels.length ? hotels.map((hotel, index) => (
-                    <li key={index}>
-                      <a href={`/hotels/${hotel._id}`} className="dropdown-item">
-                        <i className="fa fa-building mr-2"></i>
-                        {hotel.hotel_name}
-                      </a>
-                      <hr className="divider" />
-                    </li>
-                  )) : <p>No hotels matched</p>}
-                  <h2>Countries</h2>
-                  <p>No countries matched</p>
-                  <h2>Cities</h2>
-                  <p>No cities matched</p>
-                </div>
-              )}
+
+              <SearchDropdown results={results} searchTerm={searchTerm} />
             </div>
           </div>
         </div>

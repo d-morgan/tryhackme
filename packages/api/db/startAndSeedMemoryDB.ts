@@ -1,6 +1,6 @@
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { MongoClient } from "mongodb";
-import { cities } from "db/seeds/cities.js";
+import { cities } from "./seeds/cities";
 import { countries } from "./seeds/countries";
 import { hotels } from "./seeds/hotels";
 
