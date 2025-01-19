@@ -1,55 +1,108 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import SearchDropdown from './SearchDropdown';
-import type { Hotel } from '../helpers/types';
+import type { Country, City } from '../helpers/types';
 
 describe('SearchDropdown Component', () => {
-  it('does not render if searchTerm is empty', () => {
+  it('does not render if searchTerm is whitespace', () => {
     render(
       <SearchDropdown
         results={{ hotels: [], countries: [], cities: [] }}
-        searchTerm=""
+        searchTerm="   "
       />
     );
 
+    // Because it trims the searchTerm, it returns null
     expect(screen.queryByText('Hotels')).toBeNull();
+    expect(screen.queryByText('Countries')).toBeNull();
+    expect(screen.queryByText('Cities')).toBeNull();
   });
 
-  it('displays "No hotels matched" if there are no hotels', () => {
-    render(
-      <SearchDropdown
-        results={{ hotels: [], countries: [], cities: [] }}
-        searchTerm="foo"
-      />
-    );
-    expect(screen.getByText(/No hotels matched/i)).toBeInTheDocument();
-  });
-
-  it('renders a hotel entry when provided', () => {
-    const mockHotels: Hotel[] = [
+  it('displays countries when provided', () => {
+    const mockCountries: Country[] = [
       {
-        _id: 'h1',
-        chain_name: 'Test Chain',
-        hotel_name: 'Test Hotel',
-        addressline1: '',
-        addressline2: '',
-        zipcode: '',
-        city: '',
-        state: '',
-        country: '',
-        countryisocode: '',
-        star_rating: 0,
+        _id: 'c1',
+        country: 'United Kingdom',
+        countryisocode: 'GB',
       },
     ];
 
     render(
       <SearchDropdown
-        results={{ hotels: mockHotels, countries: [], cities: [] }}
-        searchTerm="test"
+        results={{
+          hotels: [],
+          countries: mockCountries,
+          cities: [],
+        }}
+        searchTerm="UK"
+      />
+    );
+
+    expect(screen.getByText('Countries')).toBeInTheDocument();
+    expect(screen.queryByText('No countries matched')).toBeNull();
+    expect(screen.getByText('United Kingdom')).toBeInTheDocument();
+  });
+
+  it('displays cities when provided', () => {
+    const mockCities: City[] = [
+      {
+        _id: 'ct1',
+        name: 'London',
+      },
+      {
+        _id: 'ct2',
+        name: 'Manchester',
+      },
+    ];
+
+    render(
+      <SearchDropdown
+        results={{
+          hotels: [],
+          countries: [],
+          cities: mockCities,
+        }}
+        searchTerm="Lon"
+      />
+    );
+
+    expect(screen.getByText('Cities')).toBeInTheDocument();
+    expect(screen.queryByText('No cities matched')).toBeNull();
+
+    expect(screen.getByText('London')).toBeInTheDocument();
+    expect(screen.getByText('Manchester')).toBeInTheDocument();
+  });
+
+  it('displays hotels when provided', () => {
+    const mockHotels = [
+      {
+        _id: 'h1',
+        hotel_name: 'Mock Hotel',
+        chain_name: 'Mock Chain',
+        addressline1: '123 Mock St',
+        addressline2: 'Apt 1',
+        zipcode: '12345',
+        city: 'Mock City',
+        state: 'Mock State',
+        country: 'United States',
+        countryisocode: 'US',
+        star_rating: 5,
+      },
+    ];
+
+    render(
+      <SearchDropdown
+        results={{
+          hotels: mockHotels,
+          countries: [],
+          cities: [],
+        }}
+        searchTerm="Mock"
       />
     );
 
     expect(screen.getByText('Hotels')).toBeInTheDocument();
-    expect(screen.getByText('Test Hotel')).toBeInTheDocument();
+    expect(screen.queryByText('No hotels matched')).toBeNull();
+    expect(screen.getByText('Mock Hotel')).toBeInTheDocument();
   });
 });

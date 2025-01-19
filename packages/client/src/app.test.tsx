@@ -4,32 +4,30 @@ import App from './app';
 
 describe('App component', () => {
   beforeEach(() => {
-    // Restore any mocks to their initial state before each test
     vi.restoreAllMocks();
   });
 
+  const renderApp = () => render(<App />);
+
   test('renders search input', () => {
-    render(<App />);
+    renderApp();
     const input = screen.getByPlaceholderText('Search accommodation...');
     expect(input).toBeInTheDocument();
   });
 
   test('does not fetch if input is empty', async () => {
-    // Spy on fetch
     global.fetch = vi.fn();
+    renderApp();
 
-    render(<App />);
     const input = screen.getByPlaceholderText('Search accommodation...');
-
-    // Type an empty string
     fireEvent.change(input, { target: { value: '' } });
 
-    // No fetch call should be made
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
   test('shows clear button and fetches data on typing', async () => {
     global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
       json: async () => ({
         hotels: [
           {
@@ -51,29 +49,29 @@ describe('App component', () => {
       }),
     } as Response);
 
-    render(<App />);
-
-    // Check initial state
+    renderApp();
     const input = screen.getByPlaceholderText('Search accommodation...');
     expect(screen.queryByTestId('clear-btn')).toBeNull();
 
-    // Type some text to trigger a fetch
+    // Type => triggers fetch
     fireEvent.change(input, { target: { value: 'mock' } });
 
     const clearBtnIcon = screen.getByTestId('clear-btn');
     expect(clearBtnIcon).toBeInTheDocument();
 
-    // Wait for the mocked fetch to resolve
+    // Wait for "Mock Hotel" to appear
     const hotelItem = await screen.findByText(/Mock Hotel/i);
     expect(hotelItem).toBeInTheDocument();
+
+    // Ensure fetch was called
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/search?q=mock')
     );
   });
 
   test('resets results on empty searchTerm after typing', async () => {
-    // Start with a successful fetch
     global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
       json: async () => ({
         hotels: [
           {
@@ -86,10 +84,10 @@ describe('App component', () => {
       }),
     } as Response);
 
-    render(<App />);
-
-    // Type to trigger a fetch
+    renderApp();
     const input = screen.getByPlaceholderText('Search accommodation...');
+
+    // Type => triggers fetch
     fireEvent.change(input, { target: { value: 'mock' } });
 
     // Wait for results
@@ -99,16 +97,15 @@ describe('App component', () => {
     // Now simulate user clearing the input
     fireEvent.change(input, { target: { value: '' } });
 
-    // Should remove all results
+    // The results should be removed from the dropdown
     expect(screen.queryByText(/Mock Hotel/i)).toBeNull();
     expect(screen.queryByText(/Hotels/i)).toBeNull();
-    // Also hide clear button
     expect(screen.queryByTestId('clear-btn')).toBeNull();
   });
 
   test('clears input on clear button click', async () => {
-    // same fetch mock as above
     global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
       json: async () => ({
         hotels: [],
         countries: [],
@@ -116,10 +113,10 @@ describe('App component', () => {
       }),
     } as Response);
 
-    render(<App />);
+    renderApp();
     const input = screen.getByPlaceholderText('Search accommodation...');
 
-    // Type some text so the clear button shows up
+    // Type => clear button shows
     fireEvent.change(input, { target: { value: 'test' } });
     const clearBtnIcon = await screen.findByTestId('clear-btn');
     expect(clearBtnIcon).toBeInTheDocument();
@@ -127,36 +124,33 @@ describe('App component', () => {
     // Click the clear button
     fireEvent.click(clearBtnIcon);
 
-    // Input should now be empty
+    // Input is now empty
     expect((input as HTMLInputElement).value).toBe('');
-    // The results div / headings should not be present
+    // The result headings are gone
     expect(screen.queryByText('Hotels')).toBeNull();
   });
 
   test('fetchData sets error if fetch fails', async () => {
-    // Mock console.error so we can assert it was called
     const consoleErrorSpy = vi
       .spyOn(console, 'error')
       .mockImplementation(() => {});
 
-    // Force fetch to reject
+    // Force rejection => triggers catch
     global.fetch = vi.fn().mockRejectedValue(new Error('Network Error'));
 
-    render(<App />);
+    renderApp();
     const input = screen.getByPlaceholderText('Search accommodation...');
 
-    // Type some text to trigger a fetch
     fireEvent.change(input, { target: { value: 'mock' } });
 
-    // Wait for the fetch to fail
     await waitFor(() => {
-      // Check that we show "no results" messages
+      // Because fetch fails, the code sets empty results => "No hotels matched", etc.
       expect(screen.getByText('No hotels matched')).toBeInTheDocument();
       expect(screen.getByText('No countries matched')).toBeInTheDocument();
       expect(screen.getByText('No cities matched')).toBeInTheDocument();
     });
 
-    // Check console.error called
+    // Confirm error log
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Error fetching search data:',
       expect.any(Error)

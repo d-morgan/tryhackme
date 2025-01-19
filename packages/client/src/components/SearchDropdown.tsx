@@ -11,7 +11,7 @@ interface SearchDropdownProps {
 }
 
 function SearchDropdown({ results, searchTerm }: SearchDropdownProps) {
-  if (!searchTerm) {
+  if (!searchTerm.trim()) {
     return null;
   }
 
