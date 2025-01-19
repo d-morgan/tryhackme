@@ -80,17 +80,23 @@ When clicking on one of the `Hotels`, `Cities` or `Countries` links, the applica
 
 ### Limitations
 
-Given the time constraints, we do not expect a fully production-ready solution. We're primarily interested in the approach and the overall quality of the solution. 
-Feel free to modify the current codebase as needed, including adding or removing dependencies. 
+Given the time constraints, we do not expect a fully production-ready solution. We're primarily interested in the approach and the overall quality of the solution.
+Feel free to modify the current codebase as needed, including adding or removing dependencies.
 For larger or more time-intensive changes, you're welcome to outline your ideas in the write-up section below and discuss them further during the call.
 
 <img src="./assets/search-example.png" width="400px" />
 
 ### Write-up
 
-<!-- Write-up/conclusion section -->
+When completing this task, I focussed on creating a number of tests to build reliability in the solution and have something to aim for. At the start, there was a basic test template for the client. I decided to build upon this extensively while also adding a second testing framework to the api side of the challenge.
 
-_When all the behaviour is implemented, feel free to add some observations or conclusions you like to share in the section_
+Then throughout the task, I tried to ensure that my test coverage was as high as possible.
+
+In terms of general approach, I viewed the larger challenge as two sub-tasks and began solving and optimising the api package first. This involved refining the query such that it returned only the required results and took the emphasis away from the front-end to do the filtering.
+
+On the client, I tried to refactor some of the functionality such that duplicate code was minimised. This involved extracting out the Typescript types into a dedicated file along with subcomponents into their own directory. I also added some routing logic to enable the dedicate views to be reachable.
+
+I decided to build upon the requirement for each of these views so that it populates the page with the correct data from MongoDB rather than just printing the name. I figured it was likely that this would be needed eventually anyway in practice.
 
 ### Database structure
 
